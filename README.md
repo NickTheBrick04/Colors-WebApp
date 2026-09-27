@@ -137,4 +137,4 @@ All endpoints accept and return **JSON** via **POST** requests.
 
 ## AI Usage Disclosure
 
-No AI tools were used in the development of this project.
+Used Claude to review and verify my plan for organizing the repository along with assistance analyzing the repo and assisting the creation of the README.
