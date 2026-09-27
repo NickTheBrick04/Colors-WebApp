@@ -1,5 +1,6 @@
 
 <?php
+	require_once("config.php");
 
 	$inData = getRequestInfo();
 	
@@ -7,7 +8,7 @@
 	$firstName = "";
 	$lastName = "";
 
-	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331"); 	
+	$conn = new mysqli($db_host, $db_user, $db_pass, $db_name); 	
 	if( $conn->connect_error )
 	{
 		returnWithError( $conn->connect_error );

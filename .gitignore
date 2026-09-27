@@ -1,4 +1,5 @@
 api/config.php
+LAMPAPI/config.php
 .env
 *.key
 *.pem

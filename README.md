@@ -1,4 +1,4 @@
-# COLORS – COP 4331 LAMP Stack Contact Manager
+# COLORS – COP 4331 LAMP Stack Color Manager
 
 ## Description
 
@@ -39,6 +39,7 @@ LAMP Stack/
 │   ├── code.js             # Client-side logic (login, logout, add/search colors, cookies)
 │   └── md5.js              # MD5 hashing library
 └── LAMPAPI/
+    ├── config.php           # Database credentials (gitignored)
     ├── Login.php            # POST – authenticates a user
     ├── AddColor.php         # POST – adds a color for a user
     └── SearchColors.php     # POST – searches colors by partial name match
@@ -74,19 +75,26 @@ CREATE TABLE Colors (
 );
 ```
 
-Create a MySQL user that matches the credentials in the PHP files (or update the PHP files to match your own):
+### 2. Configure Database Credentials
 
-```sql
-CREATE USER 'TheBeast'@'localhost' IDENTIFIED BY 'WeLoveCOP4331';
-GRANT ALL PRIVILEGES ON COP4331.* TO 'TheBeast'@'localhost';
-FLUSH PRIVILEGES;
+Create a file at `LAMPAPI/config.php` and fill in your MySQL credentials:
+
+```php
+<?php
+    $db_host = "localhost";
+    $db_user = "your_username";
+    $db_pass = "your_password";
+    $db_name = "COP4331";
+?>
 ```
 
-### 2. Deploy the Files
+> **Note:** `LAMPAPI/config.php` is listed in `.gitignore` and should never be committed.
+
+### 3. Deploy the Files
 
 Copy the entire project directory into your Apache web root (e.g., `/var/www/html/`).
 
-### 3. Update the API Base URL
+### 4. Update the API Base URL
 
 Open `js/code.js` and update the `urlBase` variable on line 1 to point to your server:
 
@@ -100,7 +108,7 @@ const urlBase = 'http://<your-domain-or-localhost>/LAMPAPI';
 
 1. Start your Apache and MySQL services.
 2. Navigate to `http://<your-domain-or-localhost>/index.html` in a web browser.
-3. Log in with a valid user account (users must be inserted directly into the `Users` table).
+3. Log in with a valid user account.
 4. After logging in you will be redirected to the color management page where you can add and search colors.
 
 The production deployment is accessible at **http://nicks711.com**.
@@ -121,11 +129,9 @@ All endpoints accept and return **JSON** via **POST** requests.
 
 ## Assumptions & Limitations
 
-- No user registration page — new users must be inserted directly into the database.
-- No delete or update functionality for colors — only add and search are supported.
-- The application uses HTTP (not HTTPS).
-- Database credentials are hardcoded in each PHP file rather than a shared configuration file.
-- Cookie-based authentication stores the user ID in a client-side cookie with a 20-minute expiry; there is no server-side session management.
+- The application is designed as a class project to demonstrate LAMP stack fundamentals.
+- Users are added directly to the database.
+- The application supports adding and searching colors.
 
 ---
 
