@@ -1,0 +1,42 @@
+@startuml
+title COLORS LAMP Stack - Use Case Diagram
+
+left to right direction
+
+skinparam shadowing false
+skinparam dpi 180
+skinparam defaultFontSize 15
+skinparam usecaseFontSize 16
+skinparam actorFontSize 16
+skinparam rectangleFontSize 18
+skinparam roundcorner 10
+skinparam packageStyle rectangle
+
+actor "User" as User
+
+rectangle "COLORS - Color Management System" {
+  usecase "Log In" as UC_Login
+
+  usecase "Search Colors" as UC_Search
+  usecase "Add Color" as UC_Add
+  usecase "Edit Color" as UC_Edit
+  usecase "Delete Color" as UC_Delete
+  usecase "Log Out" as UC_Logout
+
+  UC_Search -[hidden]down-> UC_Add
+  UC_Add -[hidden]down-> UC_Edit
+  UC_Edit -[hidden]down-> UC_Delete
+  UC_Delete -[hidden]down-> UC_Logout
+}
+
+' User enters through Log In
+User --> UC_Login
+
+' Log In branches to all authenticated actions
+UC_Login --> UC_Search
+UC_Login --> UC_Add
+UC_Login --> UC_Edit
+UC_Login --> UC_Delete
+UC_Login --> UC_Logout
+
+@enduml

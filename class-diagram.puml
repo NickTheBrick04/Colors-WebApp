@@ -1,0 +1,182 @@
+@startuml
+title COLORS LAMP Stack - Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam dpi 180
+skinparam defaultFontSize 14
+skinparam nodesep 60
+skinparam ranksep 70
+skinparam packageStyle rectangle
+
+package "Database Model (COP4331)" {
+  class User <<Entity>> {
+    - ID : int {PK}
+    - Login : string
+    - Password : string
+    - firstName : string
+    - lastName : string
+    + getId() : int
+    + getLogin() : string
+    + getFirstName() : string
+    + getLastName() : string
+  }
+
+  class Color <<Entity>> {
+    - UserId : int {FK}
+    - Name : string
+    + getUserId() : int
+    + getName() : string
+  }
+
+  User "1" *-- "0..*" Color : owns >
+}
+
+package "Backend Architecture (LAMPAPI)" {
+  class Config <<Configuration>> {
+    + db_host : string = "localhost"
+    + db_user : string
+    + db_pass : string
+    + db_name : string = "COP4331"
+  }
+
+  abstract class BaseEndpoint <<Script>> {
+    # getRequestInfo() : array
+    # sendResultInfoAsJson(obj : string) : void
+    # returnWithError(err : string) : void
+  }
+
+  class LoginEndpoint <<Endpoint>> {
+    + handleRequest() : void
+    - returnWithInfo(firstName : string, lastName : string, id : int) : void
+  }
+
+  class AddColorEndpoint <<Endpoint>> {
+    + handleRequest() : void
+  }
+
+  class SearchColorsEndpoint <<Endpoint>> {
+    + handleRequest() : void
+    - returnWithInfo(searchResults : string) : void
+  }
+
+  class EditColorEndpoint <<Endpoint>> {
+    + handleRequest() : void
+  }
+
+  class DeleteColorEndpoint <<Endpoint>> {
+    + handleRequest() : void
+  }
+
+  LoginEndpoint --|> BaseEndpoint
+  AddColorEndpoint --|> BaseEndpoint
+  SearchColorsEndpoint --|> BaseEndpoint
+  EditColorEndpoint --|> BaseEndpoint
+  DeleteColorEndpoint --|> BaseEndpoint
+
+  BaseEndpoint ..> Config : requires >
+  LoginEndpoint ..> User : queries (SELECT) >
+  AddColorEndpoint ..> Color : persists (INSERT) >
+  SearchColorsEndpoint ..> Color : queries (SELECT LIKE) >
+  EditColorEndpoint ..> Color : modifies (UPDATE) >
+  DeleteColorEndpoint ..> Color : removes (DELETE) >
+}
+
+package "Data Transfer Objects (JSON Payloads)" {
+  class LoginResponse <<DTO>> {
+    + id : int
+    + firstName : string
+    + lastName : string
+    + error : string
+  }
+
+  class GenericStatusResponse <<DTO>> {
+    + error : string
+  }
+
+  class SearchColorsResponse <<DTO>> {
+    + results : string[]
+    + error : string
+  }
+
+  LoginEndpoint ..> LoginResponse : creates / returns >
+  AddColorEndpoint ..> GenericStatusResponse : creates / returns >
+  EditColorEndpoint ..> GenericStatusResponse : creates / returns >
+  DeleteColorEndpoint ..> GenericStatusResponse : creates / returns >
+  SearchColorsEndpoint ..> SearchColorsResponse : creates / returns >
+}
+
+package "Frontend Architecture" {
+  class ClientApp <<JavaScript Module (code.js)>> {
+    - urlBase : string = "http://nicks711.com/LAMPAPI"
+    - extension : string = "php"
+    - userId : int
+    - firstName : string
+    - lastName : string
+    + doLogin() : void
+    + saveCookie() : void
+    + readCookie() : void
+    + doLogout() : void
+    + addColor() : void
+    + editColor() : void
+    + deleteColor() : void
+    + searchColor() : void
+  }
+
+  class LoginPage <<HTML View (index.html)>> {
+    - loginName : HTMLInputElement
+    - loginPassword : HTMLInputElement
+    - loginButton : HTMLButtonElement
+    - loginResult : HTMLSpanElement
+    + onDoLoginClick() : void
+  }
+
+  class ColorManagerPage <<HTML View (color.html)>> {
+    - searchText : HTMLInputElement
+    - searchColorButton : HTMLButtonElement
+    - colorSearchResult : HTMLSpanElement
+    - colorList : HTMLParagraphElement
+    - colorText : HTMLInputElement
+    - addColorButton : HTMLButtonElement
+    - editColorButton : HTMLButtonElement
+    - deleteColorButton : HTMLButtonElement
+    - colorAddResult : HTMLSpanElement
+    - logoutButton : HTMLButtonElement
+    + onDOMContentLoaded() : void
+    + onSearchColorClick() : void
+    + onAddColorClick() : void
+    + onEditColorClick() : void
+    + onDeleteColorClick() : void
+    + onLogoutClick() : void
+  }
+
+  class MD5 <<Utility Library (md5.js)>> {
+    + md5(string : string) : string
+  }
+
+  LoginPage ..> ClientApp : invokes doLogin() >
+  LoginPage ..> MD5 : includes (unused) >
+  ColorManagerPage ..> ClientApp : invokes readCookie(), addColor(), editColor(), deleteColor(), searchColor(), doLogout() >
+
+  ' Client sends requests to Endpoints
+  ClientApp ..> LoginEndpoint : HTTP POST {login, password} >
+  ClientApp ..> AddColorEndpoint : HTTP POST {color, userId} >
+  ClientApp ..> EditColorEndpoint : HTTP POST {oldColor, newColor, userId} >
+  ClientApp ..> DeleteColorEndpoint : HTTP POST {color, userId} >
+  ClientApp ..> SearchColorsEndpoint : HTTP POST {search, userId} >
+
+  ' Client consumes Response DTOs
+  ClientApp ..> LoginResponse : parses response <
+  ClientApp ..> GenericStatusResponse : parses response <
+  ClientApp ..> SearchColorsResponse : parses response <
+}
+
+note bottom of ClientApp
+  In UML Class diagrams, dependencies point from caller to callee.
+  code.js depends on the PHP endpoints by targeting their URLs.
+  The PHP endpoints do not point back to JavaScript because PHP
+  has no compile-time or runtime knowledge of client scripts;
+  return data is modeled via the Response DTOs above.
+end note
+
+@enduml

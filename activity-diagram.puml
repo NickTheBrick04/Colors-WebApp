@@ -1,0 +1,162 @@
+@startuml
+title COLORS LAMP Stack - Activity Diagram
+
+scale 1.25
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontSize 16
+skinparam ActivityFontSize 16
+skinparam ActivityDiamondFontSize 15
+skinparam NoteFontSize 14
+skinparam PartitionFontSize 18
+skinparam ArrowFontSize 14
+skinparam ConditionFontSize 14
+skinparam conditionStyle inside
+
+|#LightYellow|User|
+|#LightCyan|Browser (Frontend / code.js)|
+|#LightGreen|Backend (LAMPAPI)|
+|#LightBlue|Database (MySQL)|
+
+|User|
+start
+:Open index.html;
+:Enter Username & Password;
+:Click "Do It" (Login);
+
+|Browser (Frontend / code.js)|
+:doLogin() triggered;
+:Read #loginName & #loginPassword;
+note right
+  Password sent as plain text
+  (md5 hash call commented out)
+end note
+:Send POST to /Login.php\nwith JSON {login, password};
+
+|Backend (LAMPAPI)|
+:Parse JSON payload;
+:Connect to MySQL via config.php;
+:Execute prepared statement:\nSELECT ID, firstName, lastName FROM Users;
+
+|Database (MySQL)|
+:Query Users table for match;
+:Return matching row;
+
+|Backend (LAMPAPI)|
+if (User found?) then (yes)
+  :Return JSON with user info\n{"id": ID, "firstName": ..., "lastName": ...};
+else (no)
+  :Return JSON error\n{"id": 0, "error": "No Records Found"};
+endif
+
+|Browser (Frontend / code.js)|
+:Parse response JSON;
+if (userId >= 1?) then (success)
+  :saveCookie() (20-min session);
+  :Redirect to color.html;
+else (failure)
+  :Show "User/Password combination incorrect";
+  |User|
+  :View error message;
+  stop
+endif
+
+|User|
+:color.html loads;
+
+|Browser (Frontend / code.js)|
+:readCookie() on page load;
+if (userId >= 0?) then (valid cookie)
+  :Display color management UI;
+else (invalid / expired)
+  :Redirect to index.html;
+  |User|
+  stop
+endif
+
+|User|
+repeat
+  :View Color Manager Dashboard;
+  if (User action?) then (Search Colors)
+    :Enter search text;
+    :Click "Search Color";
+    |Browser (Frontend / code.js)|
+    :Send POST to /SearchColors.php\nwith JSON {search, userId};
+    |Backend (LAMPAPI)|
+    :Execute prepared query:\nSELECT Name FROM Colors WHERE Name LIKE ?;
+    |Database (MySQL)|
+    :Fetch matching color records;
+    |Backend (LAMPAPI)|
+    if (Matches found?) then (yes)
+      :Return JSON {"results": [...], "error": ""};
+    else (no)
+      :Return JSON {"error": "No Records Found"};
+    endif
+    |Browser (Frontend / code.js)|
+    if (Results found?) then (yes)
+      :Render color list in <p>#colorList;
+      :Show "Color(s) has been retrieved";
+    else (no)
+      :Show error message;
+    endif
+
+  else if (User action?) then (Add Color)
+    |User|
+    :Enter color name;
+    :Click "Add Color";
+    |Browser (Frontend / code.js)|
+    :Send POST to /AddColor.php\nwith JSON {color, userId};
+    |Backend (LAMPAPI)|
+    :Execute prepared insert:\nINSERT INTO Colors (UserId, Name);
+    |Database (MySQL)|
+    :Commit new row to Colors table;
+    |Backend (LAMPAPI)|
+    :Return JSON {"error": ""};
+    |Browser (Frontend / code.js)|
+    :Show "Color has been added";
+
+  else if (User action?) then (Edit Color)
+    |User|
+    :Select color and enter new name;
+    :Click "Update / Edit Color";
+    |Browser (Frontend / code.js)|
+    :Send POST to /EditColor.php\nwith JSON {oldColor, newColor, userId};
+    |Backend (LAMPAPI)|
+    :Execute prepared update:\nUPDATE Colors SET Name = ? WHERE Name = ? AND UserID = ?;
+    |Database (MySQL)|
+    :Update record in Colors table;
+    |Backend (LAMPAPI)|
+    :Return JSON {"error": ""};
+    |Browser (Frontend / code.js)|
+    :Show "Color has been updated";
+
+  else if (User action?) then (Delete Color)
+    |User|
+    :Select or enter color to remove;
+    :Click "Delete Color";
+    |Browser (Frontend / code.js)|
+    :Send POST to /DeleteColor.php\nwith JSON {color, userId};
+    |Backend (LAMPAPI)|
+    :Execute prepared delete:\nDELETE FROM Colors WHERE Name = ? AND UserID = ?;
+    |Database (MySQL)|
+    :Remove record from Colors table;
+    |Backend (LAMPAPI)|
+    :Return JSON {"error": ""};
+    |Browser (Frontend / code.js)|
+    :Show "Color has been deleted";
+
+  else (Log Out)
+    |User|
+    :Click "Log Out";
+    |Browser (Frontend / code.js)|
+    :doLogout() resets session variables;
+    :Expire cookie (set date to 1970);
+    :Redirect to index.html;
+    |User|
+    :Returned to login page;
+    stop
+  endif
+repeat while (User continues session)
+stop
+
+@enduml
