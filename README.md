@@ -137,4 +137,4 @@ All endpoints accept and return **JSON** via **POST** requests.
 
 ## AI Usage Disclosure
 
-Used Claude to review and verify my plan for organizing the repository along with assistance analyzing the repo and assisting the creation of the README.
+Used Claude to review and verify my plan for organizing the repository along with assistance analyzing the repo and assisting the creation of the README. Gemini used for for assistance in PUML diagrams.
