@@ -53,6 +53,17 @@ LAMP Stack/
 
 - A LAMP server (Linux, Apache, MySQL, PHP) 
 
+### Run the Linters
+
+Node.js is used only to install and run the HTML, CSS, and JavaScript linters. It is not used to run the web application.
+
+```bash
+npm ci
+npm run lint
+```
+
+GitHub Actions runs these checks automatically on every push and pull request.
+
 ### 1. Set Up the Database
 
 Create a MySQL database named `COP4331` and the required tables:

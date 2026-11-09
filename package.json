@@ -1,0 +1,23 @@
+{
+  "name": "colors-lamp-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lint tooling for the COLORS LAMP web application",
+  "scripts": {
+    "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
+    "lint:html": "html-validate \"*.html\"",
+    "lint:css": "stylelint \"css/**/*.css\"",
+    "lint:js": "eslint \"js/**/*.js\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^16.5.0",
+    "html-validate": "^11.21.0",
+    "stylelint": "^16.25.0",
+    "stylelint-config-standard": "^39.0.1"
+  },
+  "overrides": {
+    "minimatch": "11.0.5"
+  }
+}
